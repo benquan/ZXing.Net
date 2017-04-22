@@ -1,10 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.26403.3
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "zxing.net4.5", "Source\lib\zxing.net4.5.csproj", "{24074395-0196-4204-B516-CB6DBA2FC4B9}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Clients", "Clients", "{5D107164-A3D8-44DB-B4DD-34F1C39D2C56}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Icons", "Icons", "{AF72F45B-8305-4B44-A28A-5F477E6E8533}"
@@ -15,15 +13,17 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Icons", "Icons", "{AF72F45B
 		Icons\logo_logo without text.svg = Icons\logo_logo without text.svg
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentation", "{6F514258-1261-4466-9FFD-11B74056BF6C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "zxing.net4.5", "Source\lib\zxing.net4.5.csproj", "{24074395-0196-4204-B516-CB6DBA2FC4B9}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "zxing.net4.5.presentation", "Source\lib\zxing.net4.5.presentation.csproj", "{D038EDF8-2DB4-4E21-B369-12C115583A81}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "zxing.net4.6", "Source\lib\zxing.net4.6.csproj", "{E028CBEC-BD08-4A0F-B4BB-C7EC413A16C1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "zxing.net4.6.presentation", "Source\lib\zxing.net4.6.presentation.csproj", "{2C7ED1D1-AE0E-4244-87A3-C3CC13DD0659}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentation", "{6F514258-1261-4466-9FFD-11B74056BF6C}"
-EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "zxing.netcore", "Source\lib\netstandard\zxing.netcore.xproj", "{302FE042-CE2F-4367-A834-8C0492294BF9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "zxing.netcore", "Source\lib\netstandard\zxing.netcore.xproj", "{302FE042-CE2F-4367-A834-8C0492294BF9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "zxing.net2.0", "Source\lib\zxing.net2.0.csproj", "{41B69545-AAB6-42A6-96A0-6F6817E654A3}"
 EndProject
