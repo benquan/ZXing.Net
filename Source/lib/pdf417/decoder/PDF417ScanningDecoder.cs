@@ -605,21 +605,30 @@ namespace ZXing.PDF417.Internal
             endColumn = startColumn;
             startColumn = endColumn - codewordBitCount;
          }
-         // TODO implement check for width and correction of black and white bars
-         // use start (and maybe stop pattern) to determine if blackbars are wider than white bars. If so, adjust.
-         // should probably done only for codewords with a lot more than 17 bits. 
-         // The following fixes 10-1.png, which has wide black bars and small white bars
-         //    for (int i = 0; i < moduleBitCount.Length; i++) {
-         //      if (i % 2 == 0) {
-         //        moduleBitCount[i]--;
-         //      } else {
-         //        moduleBitCount[i]++;
-         //      }
-         //    }
+            // TODO implement check for width and correction of black and white bars
+            // use start (and maybe stop pattern) to determine if blackbars are wider than white bars. If so, adjust.
+            // should probably done only for codewords with a lot more than 17 bits. 
+            // The following fixes 10-1.png, which has wide black bars and small white bars
 
-         // We could also use the width of surrounding codewords for more accurate results, but this seems
-         // sufficient for now
-         if (!checkCodewordSkew(codewordBitCount, minCodewordWidth, maxCodewordWidth))
+            // Q-Soft removed comments and added condition
+            if (image.ThickBlack)
+            {
+                for (int i = 0; i < moduleBitCount.Length; i++)
+                {
+                    if (i % 2 == 0)
+                    {
+                        moduleBitCount[i]--;
+                    }
+                    else
+                    {
+                        moduleBitCount[i]++;
+                    }
+                }
+            }
+
+            // We could also use the width of surrounding codewords for more accurate results, but this seems
+            // sufficient for now
+            if (!checkCodewordSkew(codewordBitCount, minCodewordWidth, maxCodewordWidth))
          {
             // We could try to use the startX and endX position of the codeword in the same column in the previous row,
             // create the bit count from it and normalize it to 8. This would help with single pixel errors.
