@@ -22,7 +22,7 @@ using Color = UnityEngine.Color32;
 #elif MONOANDROID
 using Android.Graphics;
 #elif (PORTABLE || NETSTANDARD)
-#elif (NET45 || NET40 || NET35 || NET20 || WindowsCE)
+#elif (NET47 || NET46 || NET45 || NET40 || NET35 || NET20 || WindowsCE)
 using System.Drawing;
 #elif NETFX_CORE
 using Windows.UI;
@@ -45,16 +45,40 @@ namespace ZXing.Rendering
    public sealed class PixelDataRenderer : IBarcodeRenderer<PixelData>
    {
 #if (PORTABLE || NETSTANDARD)
+      /// <summary>
+      /// represents a color defined as ARGB byte data
+      /// </summary>
       public struct Color
       {
-         public static Color Black = new Color(0);
-         public static Color White = new Color(0x00FFFFFF);
+         /// <summary>
+         /// the color black
+         /// </summary>
+         public static Color Black = new Color(0xFF000000);
+         /// <summary>
+         /// the color white
+         /// </summary>
+         public static Color White = new Color(0xFFFFFFFF);
 
+         /// <summary>
+         /// value of the alpha channel
+         /// </summary>
          public byte A;
+         /// <summary>
+         /// value of the red channel
+         /// </summary>
          public byte R;
+         /// <summary>
+         /// value of the green channel
+         /// </summary>
          public byte G;
+         /// <summary>
+         /// value of the blue channel
+         /// </summary>
          public byte B;
 
+         /// <summary>
+         /// Initializes a new instance of the <see cref="Color"/> struct.
+         /// </summary>
          public Color(int color)
          {
             A = (byte)((color & 0xFF000000) >> 24);
@@ -89,7 +113,7 @@ namespace ZXing.Rendering
 #if UNITY
          Foreground = UnityEngine.Color.black;
          Background = UnityEngine.Color.white;
-#elif (NET45 || NET40 || NET35 || NET20 || WindowsCE || PORTABLE || NETSTANDARD || MONOANDROID)
+#elif (NET47 || NET46 || NET45 || NET40 || NET35 || NET20 || WindowsCE || PORTABLE || NETSTANDARD || MONOANDROID)
          Foreground = Color.Black;
          Background = Color.White;
 #else
@@ -152,6 +176,9 @@ namespace ZXing.Rendering
                pixelsize = heigth / matrix.Height;
             }
          }
+
+         if (emptyArea < heigth)
+            emptyArea = 0;
 
          var pixels = new byte[width * heigth * 4];
          var index = 0;

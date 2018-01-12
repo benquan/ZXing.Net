@@ -26,6 +26,9 @@
     <DefineConstants>TRACE;DEBUG;NET35,UNITY,WINDOWS_PHONE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
+    <IntermediateOutputPath Condition=" '$(PlatformName)' == 'AnyCPU' ">$(BaseIntermediateOutputPath)$(Configuration)\unity\</IntermediateOutputPath>
+    <IntermediateOutputPath Condition=" '$(PlatformName)' != 'AnyCPU' ">$(BaseIntermediateOutputPath)$(PlatformName)\$(Configuration)\unity\</IntermediateOutputPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -35,6 +38,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>..\..\Build\Release\unity\zxing.unity.xml</DocumentationFile>
+    <BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
+    <IntermediateOutputPath Condition=" '$(PlatformName)' == 'AnyCPU' ">$(BaseIntermediateOutputPath)$(Configuration)\unity\</IntermediateOutputPath>
+    <IntermediateOutputPath Condition=" '$(PlatformName)' != 'AnyCPU' ">$(BaseIntermediateOutputPath)$(PlatformName)\$(Configuration)\unity\</IntermediateOutputPath>
   </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>false</SignAssembly>
@@ -42,9 +48,17 @@
   <PropertyGroup>
     <AssemblyOriginatorKeyFile>..\..\Key\private.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug - Reduced|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>..\..\Build\Debug\unity\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;NET35,UNITY,WINDOWS_PHONE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <Reference Include="System.Xml" />
     <Reference Include="UnityEngine">
       <HintPath>..\..\3rdparty\Unity\UnityEngine.dll</HintPath>
       <Private>False</Private>
@@ -66,13 +80,13 @@
     <Compile Include="aztec\encoder\State.cs" />
     <Compile Include="aztec\encoder\Token.cs" />
     <Compile Include="BarcodeFormat.cs" />
-    <Compile Include="BarcodeReader.cs">
-      <SubType>Code</SubType>
-    </Compile>
+    <Compile Include="BarcodeReader.Color32.cs" />
+    <Compile Include="BarcodeReaderCustom.cs" />
     <Compile Include="BarcodeReaderGeneric.cs" />
-    <Compile Include="BarcodeWriter.cs">
-      <SubType>Code</SubType>
-    </Compile>
+    <Compile Include="BarcodeWriter.Color32.cs" />
+    <Compile Include="BarcodeWriter.PixelData.cs" />
+    <Compile Include="BarcodeWriter.SvgImage.cs" />
+    <Compile Include="BarcodeWriterCustom.cs" />
     <Compile Include="BarcodeWriterGeneric.cs" />
     <Compile Include="BaseLuminanceSource.cs" />
     <Compile Include="Binarizer.cs" />
@@ -168,13 +182,21 @@
     <Compile Include="Dimension.cs" />
     <Compile Include="EncodeHintType.cs" />
     <Compile Include="FormatException.cs" />
+    <Compile Include="IBarcodeReader.Color32.cs" />
     <Compile Include="IBarcodeReader.cs" />
+    <Compile Include="IBarcodeReader.Multiple.Color32.cs" />
+    <Compile Include="IBarcodeReader.Multiple.cs" />
+    <Compile Include="IBarcodeReaderCustom.cs" />
+    <Compile Include="IBarcodeReaderCustom.Multiple.cs" />
     <Compile Include="IBarcodeReaderGeneric.cs" />
+    <Compile Include="IBarcodeReaderGeneric.Multiple.cs" />
+    <Compile Include="IBarcodeWriter.Color32.cs" />
     <Compile Include="IBarcodeWriter.cs" />
+    <Compile Include="IBarcodeWriter.PixelData.cs" />
+    <Compile Include="IBarcodeWriter.SvgImage.cs" />
+    <Compile Include="IBarcodeWriterCustom.cs" />
     <Compile Include="IBarcodeWriterGeneric.cs" />
     <Compile Include="imb\IMBReader.cs" />
-    <Compile Include="IMultipleBarcodeReader.cs" />
-    <Compile Include="IMultipleBarcodeReaderGeneric.cs" />
     <Compile Include="InvertedLuminanceSource.cs" />
     <Compile Include="LuminanceSource.cs" />
     <Compile Include="maxicode\decoder\BitMatrixParser.cs" />
@@ -307,6 +329,7 @@
     <Compile Include="Reader.cs" />
     <Compile Include="ReaderException.cs" />
     <Compile Include="renderer\IBarcodeRenderer.cs" />
+    <Compile Include="renderer\PixelData.Color32.cs" />
     <Compile Include="renderer\PixelData.cs" />
     <Compile Include="renderer\PixelDataRenderer.cs" />
     <Compile Include="renderer\SvgRenderer.cs" />
@@ -314,7 +337,6 @@
     <Compile Include="ResultMetadataType.cs" />
     <Compile Include="ResultPoint.cs" />
     <Compile Include="ResultPointCallback.cs" />
-    <Compile Include="RGB565LuminanceSource.cs" />
     <Compile Include="RGBLuminanceSource.cs" />
     <Compile Include="SupportClass.cs" />
     <Compile Include="unity\Color32LuminanceSource.cs" />
@@ -328,9 +350,9 @@
     </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <PropertyGroup Condition=" !Exists('$(MSBuildThisFileDirectory)..\..\Key\private.snk') ">
-    <PreBuildEvent Condition=" '$(OS)' == 'Unix' ">cp "$(MSBuildThisFileDirectory)..\..\Key\dummy-private.snk" "$(MSBuildThisFileDirectory)..\..\Key\private.snk"</PreBuildEvent>
-    <PreBuildEvent Condition=" '$(OS)' != 'Unix' ">copy "$(MSBuildThisFileDirectory)..\..\Key\dummy-private.snk" "$(MSBuildThisFileDirectory)..\..\Key\private.snk"</PreBuildEvent>
+  <PropertyGroup Condition="!Exists('$(MSBuildProjectDirectory)\..\..\Key\private.snk')">
+    <PreBuildEvent Condition=" '$(OS)' == 'Unix' ">cp "$(MSBuildProjectDirectory)\..\..\Key\dummy-private.snk" "$(MSBuildProjectDirectory)\..\..\Key\private.snk"</PreBuildEvent>
+    <PreBuildEvent Condition=" '$(OS)' != 'Unix' ">copy "$(MSBuildProjectDirectory)\..\..\Key\dummy-private.snk" "$(MSBuildProjectDirectory)\..\..\Key\private.snk"</PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

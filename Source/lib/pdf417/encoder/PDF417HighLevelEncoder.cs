@@ -19,7 +19,7 @@
  */
 
 using System;
-#if (SILVERLIGHT4 || SILVERLIGHT5 || NET40 || NET45 || NETFX_CORE || NETSTANDARD) && !NETSTANDARD1_0
+#if (SILVERLIGHT4 || SILVERLIGHT5 || NET40 || NET45 || NET46 || NET47 || NETFX_CORE || NETSTANDARD) && !NETSTANDARD1_0
 using System.Numerics;
 #else
 using BigIntegerLibrary;
@@ -562,7 +562,7 @@ namespace ZXing.PDF417.Internal
 
       private static void encodeNumeric(String msg, int startpos, int count, StringBuilder sb)
       {
-#if (SILVERLIGHT4 || SILVERLIGHT5 || NET40 || NET45 || NETFX_CORE || NETSTANDARD) && !NETSTANDARD1_0
+#if (SILVERLIGHT4 || SILVERLIGHT5 || NET40 || NET45 || NET46 || NET47 || NETFX_CORE || NETSTANDARD) && !NETSTANDARD1_0
          int idx = 0;
          StringBuilder tmp = new StringBuilder(count/3 + 1);
          BigInteger num900 = new BigInteger(900);
@@ -725,12 +725,12 @@ namespace ZXing.PDF417.Internal
 
       /// <summary>
       /// Determines the number of consecutive characters that are encodable using binary compaction.
-      ///
+      /// </summary>
       /// <param name="msg">the message</param>
       /// <param name="bytes">the message converted to a byte array</param>
       /// <param name="startpos">the start position within the message</param>
+      /// <param name="encoding"></param>
       /// <returns>the requested character count</returns>
-      /// </summary>
       private static int determineConsecutiveBinaryCount(String msg, byte[] bytes, int startpos, Encoding encoding)
       {
          int len = msg.Length;

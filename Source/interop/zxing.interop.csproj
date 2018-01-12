@@ -38,25 +38,36 @@
   <PropertyGroup>
     <AssemblyOriginatorKeyFile>..\..\Key\private.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug - Reduced|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>..\..\Build\Debug\interop\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;INTEROP</DefineConstants>
+    <RegisterForComInterop>true</RegisterForComInterop>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Common\ImageOLEConverter.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Common\ImageUtils.cs" />
     <Compile Include="Encoding\AztecEncodingOptions.cs" />
     <Compile Include="Common\BarcodeFormat.cs" />
     <Compile Include="Encoding\BarcodeWriter.cs" />
     <Compile Include="Common\BitmapFormat.cs" />
     <Compile Include="Decoding\DecodingOptions.cs" />
+    <Compile Include="Encoding\DatamatrixEncodingOptions.cs" />
     <Compile Include="Encoding\EncodingOptions.cs" />
     <Compile Include="Encoding\IBarcodeWriter.cs" />
+    <Compile Include="Encoding\ImageFileFormat.cs" />
     <Compile Include="Encoding\PDF417EncodingOptions.cs" />
     <Compile Include="Encoding\PixelData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

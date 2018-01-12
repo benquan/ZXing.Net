@@ -16,17 +16,10 @@
 
 using System;
 using System.Windows;
-#if NETFX_CORE
-using Windows.UI;
-using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Media.Imaging;
-#else
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-#endif
 
 using ZXing.Common;
-using ZXing.OneD;
 
 namespace ZXing.Rendering
 {
@@ -64,7 +57,6 @@ namespace ZXing.Rendering
       /// </value>
       public double FontSize { get; set; }
 
-#if !NETFX_CORE
       /// <summary>
       /// Gets or sets the font stretch.
       /// </summary>
@@ -86,7 +78,6 @@ namespace ZXing.Rendering
       /// The font weight.
       /// </value>
       public FontWeight FontWeight { get; set; }
-#endif
 
       private static readonly FontFamily DefaultFontFamily = new FontFamily("Arial");
 
@@ -99,11 +90,9 @@ namespace ZXing.Rendering
          Background = Colors.White;
          FontFamily = DefaultFontFamily;
          FontSize = 10.0;
-#if !NETFX_CORE
          FontStretch = FontStretches.Normal;
          FontStyle = FontStyles.Normal;
          FontWeight = FontWeights.Normal;
-#endif
       }
 
       /// <summary>
@@ -126,7 +115,7 @@ namespace ZXing.Rendering
       /// <param name="content">The content.</param>
       /// <param name="options">The options.</param>
       /// <returns></returns>
-      virtual public WriteableBitmap Render(BitMatrix matrix, BarcodeFormat format, string content, EncodingOptions options)
+      public virtual WriteableBitmap Render(BitMatrix matrix, BarcodeFormat format, string content, EncodingOptions options)
       {
          int width = matrix.Width;
          int height = matrix.Height;
@@ -161,52 +150,11 @@ namespace ZXing.Rendering
             }
          }
 
-#if NETFX_CORE
-         var foreground = new byte[] { Foreground.B, Foreground.G, Foreground.R, Foreground.A };
-         var background = new byte[] { Background.B, Background.G, Background.R, Background.A };
-         var bmp = new WriteableBitmap(width, height);
-         var length = width * height;
 
-         // Copy data back
-         using (var stream = System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeBufferExtensions.AsStream(bmp.PixelBuffer))
-         {
-            for (int y = 0; y < matrix.Height - emptyArea; y++)
-            {
-               for (var pixelsizeHeight = 0; pixelsizeHeight < pixelsize; pixelsizeHeight++)
-               {
-                  for (var x = 0; x < matrix.Width; x++)
-                  {
-                     var color = matrix[x, y] ? foreground : background;
-                     for (var pixelsizeWidth = 0; pixelsizeWidth < pixelsize; pixelsizeWidth++)
-                     {
-                        stream.Write(color, 0, 4);
-                     }
-                  }
-                  for (var x = pixelsize * matrix.Width; x < width; x++)
-                  {
-                     stream.Write(background, 0, 4);
-                  }
-               }
-            }
-            for (int y = matrix.Height * pixelsize - emptyArea; y < height; y++)
-            {
-               for (var x = 0; x < width; x++)
-               {
-                  stream.Write(background, 0, 4);
-               }
-            }
-         }
-         bmp.Invalidate();
-#else
          int foreground = Foreground.A << 24 | Foreground.R << 16 | Foreground.G << 8 | Foreground.B;
          int background = Background.A << 24 | Background.R << 16 | Background.G << 8 | Background.B;
-#if WPF
-         var bmp = new WriteableBitmap(width, height, 96.0, 96.0, PixelFormats.Bgra32, null);
-         var pixels = new int[width*height];
-#else
          var bmp = new WriteableBitmap(width, height);
          var pixels = bmp.Pixels;
-#endif
          var index = 0;
 
          for (int y = 0; y < matrix.Height - emptyArea; y++)
@@ -234,12 +182,7 @@ namespace ZXing.Rendering
                pixels[index++] = background;
             }
          }
-#if WPF
-         bmp.WritePixels(new Int32Rect(0, 0, width, height), pixels, bmp.BackBufferStride, 0);
-#else
          bmp.Invalidate();
-#endif
-#endif
 
          /* doesn't correctly work at the moment
           * renders at the wrong position

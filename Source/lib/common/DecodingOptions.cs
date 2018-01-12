@@ -29,9 +29,14 @@ namespace ZXing.Common
       /// <summary>
       /// Gets the data container for all options
       /// </summary>
+#if !UNITY
       [Browsable(false)]
+#endif
       public IDictionary<DecodeHintType, object> Hints { get; private set; }
 
+      /// <summary>
+      /// event is raised when a value is changed
+      /// </summary>
       [field: NonSerialized]
       public event Action<object, EventArgs> ValueChanged;
 

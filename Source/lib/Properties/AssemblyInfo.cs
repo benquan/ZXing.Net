@@ -19,6 +19,15 @@ using System.Runtime.InteropServices;
 #if NET40
 [assembly: AssemblyTitle("zxing.net for .net 4.0")]
 #endif
+#if NET45
+[assembly: AssemblyTitle("zxing.net for .net 4.5")]
+#endif
+#if NET46
+[assembly: AssemblyTitle("zxing.net for .net 4.6")]
+#endif
+#if NET47
+[assembly: AssemblyTitle("zxing.net for .net 4.7")]
+#endif
 #if SILVERLIGHT4
 [assembly: AssemblyTitle("zxing.net for silverlight 4")]
 #endif
@@ -49,10 +58,13 @@ using System.Runtime.InteropServices;
 #if NETSTANDARD
 [assembly: AssemblyTitle("zxing.net for .net core standard")]
 #endif
-[assembly: AssemblyDescription("port of the java based barcode scanning library for .net (java zxing 27.02.2017 19:21:59)")]
+#if NETFX_CORE && !WINDOWS_UWP
+[assembly: AssemblyTitle("zxing.net for windows rt")]
+#endif
+[assembly: AssemblyDescription("port of the java based barcode scanning library for .net (java zxing 16.11.2017 18:53:40)")]
 [assembly: AssemblyCompany("ZXing.Net Development")]
 [assembly: AssemblyProduct("ZXing.Net")]
-[assembly: AssemblyCopyright("Copyright © 2012-2017")]
+[assembly: AssemblyCopyright("Copyright © 2012")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 #if !PORTABLE && !NETSTANDARD1_0
@@ -69,9 +81,9 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Revision and Build Numbers
 // by using the '*' as shown below:
 
-[assembly: AssemblyVersion("0.15.0.0")]
+[assembly: AssemblyVersion("0.16.2.0")]
 #if !WindowsCE
-[assembly: AssemblyFileVersion("0.15.0.0")]
+[assembly: AssemblyFileVersion("0.16.2.0")]
 #endif
 
 [assembly: CLSCompliant(true)]

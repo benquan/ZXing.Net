@@ -38,6 +38,9 @@
     <NoConfig>true</NoConfig>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+	<BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
+    <IntermediateOutputPath Condition=" '$(PlatformName)' == 'AnyCPU' ">$(BaseIntermediateOutputPath)$(Configuration)\sl4\</IntermediateOutputPath>
+    <IntermediateOutputPath Condition=" '$(PlatformName)' != 'AnyCPU' ">$(BaseIntermediateOutputPath)$(PlatformName)\$(Configuration)\sl4\</IntermediateOutputPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -49,6 +52,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>..\..\Build\Release\sl4\zxing.sl4.XML</DocumentationFile>
+	<BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
+    <IntermediateOutputPath Condition=" '$(PlatformName)' == 'AnyCPU' ">$(BaseIntermediateOutputPath)$(Configuration)\sl4\</IntermediateOutputPath>
+    <IntermediateOutputPath Condition=" '$(PlatformName)' != 'AnyCPU' ">$(BaseIntermediateOutputPath)$(PlatformName)\$(Configuration)\sl4\</IntermediateOutputPath>
   </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>true</SignAssembly>
@@ -85,14 +91,18 @@
     <Compile Include="aztec\encoder\State.cs" />
     <Compile Include="aztec\encoder\Token.cs" />
     <Compile Include="BarcodeFormat.cs" />
-    <Compile Include="BarcodeReader.cs" />
+    <Compile Include="BarcodeReader.WriteableBitmap.cs" />
+    <Compile Include="BarcodeReaderCustom.cs" />
     <Compile Include="BarcodeReaderGeneric.cs" />
-    <Compile Include="BarcodeWriter.cs" />
+    <Compile Include="BarcodeWriter.PixelData.cs" />
+    <Compile Include="BarcodeWriter.SvgImage.cs" />
+    <Compile Include="BarcodeWriter.WritableBitmap.cs" />
+    <Compile Include="BarcodeWriterCustom.cs" />
     <Compile Include="BarcodeWriterGeneric.cs" />
     <Compile Include="BaseLuminanceSource.cs" />
     <Compile Include="Binarizer.cs" />
     <Compile Include="BinaryBitmap.cs" />
-    <Compile Include="BitmapLuminanceSource.Silverlight.cs" />
+    <Compile Include="BitmapLuminanceSource.WriteableBitmap.Silverlight.cs" />
     <Compile Include="client\result\AbstractDoCoMoResultParser.cs" />
     <Compile Include="client\result\AddressBookAUResultParser.cs" />
     <Compile Include="client\result\AddressBookDoCoMoResultParser.cs" />
@@ -192,12 +202,20 @@
     <Compile Include="EncodeHintType.cs" />
     <Compile Include="FormatException.cs" />
     <Compile Include="IBarcodeReader.cs" />
+    <Compile Include="IBarcodeReader.Multiple.cs" />
+    <Compile Include="IBarcodeReader.Multiple.WriteableBitmap.cs" />
+    <Compile Include="IBarcodeReader.WriteableBitmap.cs" />
+    <Compile Include="IBarcodeReaderCustom.cs" />
+    <Compile Include="IBarcodeReaderCustom.Multiple.cs" />
     <Compile Include="IBarcodeReaderGeneric.cs" />
+    <Compile Include="IBarcodeReaderGeneric.Multiple.cs" />
     <Compile Include="IBarcodeWriter.cs" />
+    <Compile Include="IBarcodeWriter.PixelData.cs" />
+    <Compile Include="IBarcodeWriter.SvgImage.cs" />
+    <Compile Include="IBarcodeWriter.WriteableBitmap.cs" />
+    <Compile Include="IBarcodeWriterCustom.cs" />
     <Compile Include="IBarcodeWriterGeneric.cs" />
     <Compile Include="imb\IMBReader.cs" />
-    <Compile Include="IMultipleBarcodeReader.cs" />
-    <Compile Include="IMultipleBarcodeReaderGeneric.cs" />
     <Compile Include="InvertedLuminanceSource.cs" />
     <Compile Include="LuminanceSource.cs" />
     <Compile Include="maxicode\decoder\BitMatrixParser.cs" />
@@ -331,6 +349,7 @@
     <Compile Include="ReaderException.cs" />
     <Compile Include="renderer\IBarcodeRenderer.cs" />
     <Compile Include="renderer\PixelData.cs" />
+    <Compile Include="renderer\PixelData.WriteableBitmap.Silverlight.cs" />
     <Compile Include="renderer\PixelDataRenderer.cs" />
     <Compile Include="renderer\SvgRenderer.cs" />
     <Compile Include="renderer\WriteableBitmapRenderer.cs" />
@@ -338,7 +357,6 @@
     <Compile Include="ResultMetadataType.cs" />
     <Compile Include="ResultPoint.cs" />
     <Compile Include="ResultPointCallback.cs" />
-    <Compile Include="RGB565LuminanceSource.cs" />
     <Compile Include="RGBLuminanceSource.cs" />
     <Compile Include="silverlight\BigInteger.cs" />
     <Compile Include="silverlight\NonSerializedAttribute.cs" />
@@ -360,9 +378,9 @@
       </FlavorProperties>
     </VisualStudio>
   </ProjectExtensions>
-  <PropertyGroup Condition=" !Exists('$(MSBuildThisFileDirectory)..\..\Key\private.snk') ">
-    <PreBuildEvent Condition=" '$(OS)' == 'Unix' ">cp "$(MSBuildThisFileDirectory)..\..\Key\dummy-private.snk" "$(MSBuildThisFileDirectory)..\..\Key\private.snk"</PreBuildEvent>
-    <PreBuildEvent Condition=" '$(OS)' != 'Unix' ">copy "$(MSBuildThisFileDirectory)..\..\Key\dummy-private.snk" "$(MSBuildThisFileDirectory)..\..\Key\private.snk"</PreBuildEvent>
+  <PropertyGroup Condition="!Exists('$(MSBuildProjectDirectory)\..\..\Key\private.snk')">
+    <PreBuildEvent Condition=" '$(OS)' == 'Unix' ">cp "$(MSBuildProjectDirectory)\..\..\Key\dummy-private.snk" "$(MSBuildProjectDirectory)\..\..\Key\private.snk"</PreBuildEvent>
+    <PreBuildEvent Condition=" '$(OS)' != 'Unix' ">copy "$(MSBuildProjectDirectory)\..\..\Key\dummy-private.snk" "$(MSBuildProjectDirectory)\..\..\Key\private.snk"</PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

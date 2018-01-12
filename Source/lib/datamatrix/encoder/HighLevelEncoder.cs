@@ -139,6 +139,7 @@ namespace ZXing.Datamatrix.Encoder
       /// <param name="shape">requested shape. May be {@code SymbolShapeHint.FORCE_NONE},{@code SymbolShapeHint.FORCE_SQUARE} or {@code SymbolShapeHint.FORCE_RECTANGLE}.</param>
       /// <param name="minSize">the minimum symbol size constraint or null for no constraint</param>
       /// <param name="maxSize">the maximum symbol size constraint or null for no constraint</param>
+      /// <param name="defaultEncodation">encoding mode to start with</param>
       /// <returns>the encoded message (the char values range from 0 to 255)</returns>
       public static String encodeHighLevel(String msg,
                                            SymbolShapeHint shape,
@@ -205,12 +206,12 @@ namespace ZXing.Datamatrix.Encoder
          int len = context.Codewords.Length;
          context.updateSymbolInfo();
          int capacity = context.SymbolInfo.dataCapacity;
-         if (len < capacity)
+         if (len < capacity &&
+             encodingMode != Encodation.ASCII &&
+             encodingMode != Encodation.BASE256 &&
+             encodingMode != Encodation.EDIFACT)
          {
-            if (encodingMode != Encodation.ASCII && encodingMode != Encodation.BASE256)
-            {
-               context.writeCodeword('\u00fe'); //Unlatch (254)
-            }
+            context.writeCodeword('\u00fe'); //Unlatch (254)
          }
          //Padding
          StringBuilder codewords = context.Codewords;
@@ -477,7 +478,7 @@ namespace ZXing.Datamatrix.Encoder
 
       internal static bool isNativeText(char ch)
       {
-         return (ch == ' ') || (ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'z');
+         return (ch == ' ') || (ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'z') || ch == 0x001d;
       }
 
       internal static bool isNativeX12(char ch)

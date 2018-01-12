@@ -42,12 +42,19 @@
   <PropertyGroup>
     <AssemblyOriginatorKeyFile>..\..\..\Key\private.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug - Reduced|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>..\..\..\Build\Debug\test\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;NET40</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="log4net">
       <HintPath>..\..\..\3rdparty\log4net\log4net.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Kinect, Version=1.7.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\..\3rdparty\Kinect\Microsoft.Kinect.dll</HintPath>
     </Reference>
     <Reference Include="nunit.framework">
       <HintPath>..\..\..\3rdparty\NUnit.NET\nunit.framework.dll</HintPath>
@@ -249,8 +256,9 @@
     <Folder Include="datamatrix\detector\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <PropertyGroup>
-    <PreBuildEvent>if not exist "$(SolutionDir)Key\private.snk" copy "$(SolutionDir)Key\dummy-private.snk" "$(SolutionDir)Key\private.snk"</PreBuildEvent>
+  <PropertyGroup Condition="!Exists('$(MSBuildProjectDirectory)\..\..\..\Key\private.snk')">
+    <PreBuildEvent Condition=" '$(OS)' == 'Unix' ">cp "$(MSBuildProjectDirectory)\..\..\..\Key\dummy-private.snk" "$(MSBuildProjectDirectory)\..\..\..\Key\private.snk"</PreBuildEvent>
+    <PreBuildEvent Condition=" '$(OS)' != 'Unix' ">copy "$(MSBuildProjectDirectory)\..\..\..\Key\dummy-private.snk" "$(MSBuildProjectDirectory)\..\..\..\Key\private.snk"</PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

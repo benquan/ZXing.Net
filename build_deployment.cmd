@@ -1,9 +1,12 @@
 @ECHO OFF
 
-SET VERSION=0.15.0.0
+SETLOCAL EnableDelayedExpansion EnableExtensions
+
+SET VERSION=0.16.2.0
 
 SET CURRENT_DIR=%CD%
 SET BUILD_DIR=%CD%\Build
+SET LOGFILE=%CD%\build_deployment.log
 SET DEPLOYMENT_DIR=%BUILD_DIR%\Deployment
 SET BINARY_DIR=%BUILD_DIR%\Release
 SET FILENAME_BINARY=%DEPLOYMENT_DIR%\ZXing.Net.%VERSION%.zip
@@ -11,34 +14,68 @@ SET FILENAME_DEMO_BINARY=%DEPLOYMENT_DIR%\ZXing.Net.DemoClients.%VERSION%.zip
 SET FILENAME_SOURCE=%DEPLOYMENT_DIR%\ZXing.Net.Source.%VERSION%.zip
 SET FILENAME_DOCUMENTATION=%DEPLOYMENT_DIR%\ZXing.Net.Documentation.%VERSION%.zip
 SET ZIP_TOOL=%CD%\3rdparty\zip\7za.exe
-SET SVN_EXPORT_DIR=%DEPLOYMENT_DIR%\Source
-SET SVN_URL=https://zxingnet.svn.codeplex.com/svn/trunk
-SET SVN_URL_WINMD=https://zxingnet.svn.codeplex.com/svn/branches/WinMD
+SET SOURCE_EXPORT_DIR=%DEPLOYMENT_DIR%\Source
 SET SVN_TOOL=%CD%\3rdparty\Subversion\svn.exe
+SET HAS_VALIDATION_ERROR=0
 
-IF NOT EXIST "%BINARY_DIR%\ce2.0\zxing.ce2.0.dll" GOTO BINARY_CE20_NOT_FOUND
-IF NOT EXIST "%BINARY_DIR%\ce3.5\zxing.ce3.5.dll" GOTO BINARY_CE35_NOT_FOUND
-IF NOT EXIST "%BINARY_DIR%\net2.0\zxing.dll" GOTO BINARY_NET20_NOT_FOUND
-IF NOT EXIST "%BINARY_DIR%\net3.5\zxing.dll" GOTO BINARY_NET35_NOT_FOUND
-IF NOT EXIST "%BINARY_DIR%\net4.0\zxing.dll" GOTO BINARY_NET40_NOT_FOUND
-IF NOT EXIST "%BINARY_DIR%\net4.0\zxing.presentation.dll" GOTO BINARY_NET40_PRESENTATION_NOT_FOUND
-IF NOT EXIST "%BINARY_DIR%\net4.5\zxing.dll" GOTO BINARY_NET45_NOT_FOUND
-IF NOT EXIST "%BINARY_DIR%\net4.5\zxing.presentation.dll" GOTO BINARY_NET45_PRESENTATION_NOT_FOUND
-IF NOT EXIST "%BINARY_DIR%\net4.6\zxing.dll" GOTO BINARY_NET46_NOT_FOUND
-IF NOT EXIST "%BINARY_DIR%\net4.6\zxing.presentation.dll" GOTO BINARY_NET46_PRESENTATION_NOT_FOUND
-IF NOT EXIST "%BINARY_DIR%\sl4\zxing.sl4.dll" GOTO BINARY_SL40_NOT_FOUND
-IF NOT EXIST "%BINARY_DIR%\sl5\zxing.sl5.dll" GOTO BINARY_SL50_NOT_FOUND
-IF NOT EXIST "%BINARY_DIR%\unity\zxing.unity.dll" GOTO BINARY_UNITY_NOT_FOUND
-IF NOT EXIST "%BINARY_DIR%\wp7.0\zxing.wp7.0.dll" GOTO BINARY_WP70_NOT_FOUND
-IF NOT EXIST "%BINARY_DIR%\wp7.1\zxing.wp7.1.dll" GOTO BINARY_WP71_NOT_FOUND
-IF NOT EXIST "%BINARY_DIR%\wp8.0\zxing.wp8.0.dll" GOTO BINARY_WP80_NOT_FOUND
-IF NOT EXIST "%BINARY_DIR%\winrt\zxing.winrt.dll" GOTO BINARY_WINRT_NOT_FOUND
-IF NOT EXIST "%BINARY_DIR%\monodroid\zxing.monoandroid.dll" GOTO BINARY_MONODROID_NOT_FOUND
-IF NOT EXIST "%BINARY_DIR%\winmd\zxing.winmd" GOTO BINARY_WINRTCOMPONENTS_NOT_FOUND
-IF NOT EXIST "%BINARY_DIR%\portable\zxing.portable.dll" GOTO BINARY_PORTABLE_NOT_FOUND
-IF NOT EXIST "%BINARY_DIR%\kinect\zxing.kinect.dll" GOTO BINARY_KINECT_NOT_FOUND
-IF NOT EXIST "%BINARY_DIR%\uwp\zxing.dll" GOTO BINARY_UWP_NOT_FOUND
-IF NOT EXIST "%BINARY_DIR%\netstandard1.6\zxing.dll" GOTO BINARY_NETSTANDARD16_NOT_FOUND
+echo. > %LOGFILE%
+
+echo.
+echo Check for missing files...
+echo.
+
+FOR /F %%b IN (build_deployment_files.txt) DO (
+ SET f=%%b
+ SET f=!f:%%BINARY_DIR%%=%BINARY_DIR%!
+ SET f=!f:%%CURRENT_DIR%%=%CURRENT_DIR%!
+ IF NOT EXIST !f! (
+  ECHO The file !f! were not found
+  SET HAS_VALIDATION_ERROR=1
+ )
+)
+
+echo Check strong name of the assemblies...
+echo (script has to be called in a Visual Studio command prompt, sn.exe has to be in search paths)
+echo.
+
+FOR /F %%b IN (build_deployment_strong_named_files.txt) DO (
+ SET f=%%b
+ SET f=!f:%%BINARY_DIR%%=%BINARY_DIR%!
+ SET f=!f:%%CURRENT_DIR%%=%CURRENT_DIR%!
+ 
+ REM validation of the strong name
+ sn -q -vf !f!
+ if ERRORLEVEL 1 (
+  ECHO Re-signing the assembly !f!...
+  sn -q -Ra !f! Key\private.snk
+  sn -q -vf !f!
+  if ERRORLEVEL 1 (
+   echo Validation failed for !f!
+   SET HAS_VALIDATION_ERROR=1
+  )
+ )
+ 
+ REM validation of the correct signing key
+ for /F "tokens=2 delims=:" %%t in ('"sn -q -T !f!"') DO (
+  IF NOT "%%t" == " 4e88037ac681fe60" (
+   echo The assembly !f! is not signed with the correct key. required: 4e88037ac681fe60, found: %%t, re-signing...
+   sn -q -Ra !f! Key\private.snk
+   
+   for /F "tokens=2 delims=:" %%t in ('"sn -q -T !f!"') DO (
+    IF NOT "%%t" == " 4e88037ac681fe60" (
+     echo The assembly !f! is not signed with the correct key. required: 4e88037ac681fe60, found: %%t
+     SET HAS_VALIDATION_ERROR=1
+	)
+   )
+  )
+ )
+)
+
+IF NOT "!HAS_VALIDATION_ERROR!" == "0" (
+ ECHO.
+ ECHO The file validation procedure was not successful.
+ GOTO END
+)
 
 ECHO.
 ECHO Build deployment files in directory
@@ -46,7 +83,7 @@ ECHO %DEPLOYMENT_DIR%...
 ECHO.
 
 REM
-REM preparing deployment directory
+REM prepare deployment directory
 REM ***************************************************************************************
 
 IF NOT EXIST "%BUILD_DIR%" GOTO BUILD_DIR_NOT_FOUND
@@ -56,92 +93,101 @@ MKDIR "%DEPLOYMENT_DIR%" >NUL: 2>&1
 DEL /F "%DEPLOYMENT_DIR%\%FILENAME_BINARY%" >NUL: 2>&1
 
 REM
-REM preparing binaries
+REM prepare binaries
 REM ***************************************************************************************
-DEL /S "%BINARY_DIR%"\Clients\*.xml
-DEL /S "%BINARY_DIR%"\Clients\*.pdb
+ECHO Cleanup demo client builds
+ECHO.
+
+DEL /S "%BINARY_DIR%"\Clients\*.xml >> %LOGFILE% 2>&1
+DEL /S "%BINARY_DIR%"\Clients\*.pdb >> %LOGFILE% 2>&1
+
+ECHO Copy binaries
+ECHO.
+
+FOR /F "tokens=1,2 delims= " %%b IN (build_deployment_copy_operations.txt) DO (
+ SET f=%%b
+ SET f=!f:%%BINARY_DIR%%=%BINARY_DIR%!
+ SET f=!f:%%CURRENT_DIR%%=%CURRENT_DIR%!
+
+ SET d=%%c
+ SET d=!d:%%BINARY_DIR%%=%BINARY_DIR%!
+ SET d=!d:%%CURRENT_DIR%%=%CURRENT_DIR%!
+ 
+ ECHO Copy !f! to !d! >> %LOGFILE% 2>&1
+ 
+ MKDIR "!d!" >> %LOGFILE% 2>&1
+ 
+ COPY "!f!" "!d!" >> %LOGFILE% 2>&1
+ if ERRORLEVEL 1 GOTO ERROR_OPERATION
+)
 
 REM
-REM building archives for binaries
+REM build archives for binaries
 REM ***************************************************************************************
 
 CD "%BINARY_DIR%"
-"%ZIP_TOOL%" a -tzip -mx9 -r "%FILENAME_BINARY%" ce2.0 ce3.5 net2.0 net3.5 net4.0 net4.5 net4.6 winrt uwp netstandard1.6 unity sl4 sl5 wp7.0 wp7.1 wp8.0 monodroid winmd portable kinect ..\..\THANKS ..\..\COPYING -xr!Documentation
-"%ZIP_TOOL%" a -tzip -mx9 -r "%FILENAME_DEMO_BINARY%" Clients
-"%ZIP_TOOL%" a -tzip -mx9 -r "%FILENAME_DOCUMENTATION%" Documentation
-CD "%CURRENT_DIR%"
 
-ECHO.
+echo Build assembly archive...
+echo.
+
+"%ZIP_TOOL%" a -tzip -mx9 -r "%FILENAME_BINARY%" ce2.0 ce3.5 net2.0 net3.5 net4.0 net4.5 net4.6 net4.7 winrt uwp netstandard unity sl4 sl5 wp7.0 wp7.1 wp8.0 monodroid winmd portable interop Bindings ..\..\THANKS ..\..\COPYING -xr^^!Documentation >> %LOGFILE% 2>&1
+if ERRORLEVEL 1 GOTO ERROR_OPERATION
+
+echo Build assembly archive - demo clients...
+echo.
+
+"%ZIP_TOOL%" a -tzip -mx9 -r "%FILENAME_DEMO_BINARY%" Clients >> %LOGFILE% 2>&1
+if ERRORLEVEL 1 GOTO ERROR_OPERATION
+
+echo Build documentation archive...
+echo.
+
+"%ZIP_TOOL%" a -tzip -mx9 -r "%FILENAME_DOCUMENTATION%" Documentation >> %LOGFILE% 2>&1
+if ERRORLEVEL 1 GOTO ERROR_OPERATION
+
+CD "%CURRENT_DIR%"
 
 
 REM
-REM building nuget archive
+REM build nuget archive
 REM ***************************************************************************************
 
-CALL nuget-pack.cmd
+echo Build nuget packages...
+echo.
 
-ECHO.
+CALL nuget-pack.cmd >> %LOGFILE% 2>&1
 
 
 REM
-REM building source archive
+REM build source archive
 REM ***************************************************************************************
 
-RMDIR /S /Q "%SVN_EXPORT_DIR%" >NUL: 2>&1
+echo Build source code archive...
+echo.
 
-MKDIR "%SVN_EXPORT_DIR%" >NUL: 2>&1
-MKDIR "%SVN_EXPORT_DIR%\Base" >NUL: 2>&1
-MKDIR "%SVN_EXPORT_DIR%\Base\Source" >NUL: 2>&1
-MKDIR "%SVN_EXPORT_DIR%\Base\Source\lib" >NUL: 2>&1
-MKDIR "%SVN_EXPORT_DIR%\Base\Source\test" >NUL: 2>&1
-MKDIR "%SVN_EXPORT_DIR%\Base\Source\test\src" >NUL: 2>&1
-MKDIR "%SVN_EXPORT_DIR%\Base\Clients" >NUL: 2>&1
-MKDIR "%SVN_EXPORT_DIR%\Base\3rdparty" >NUL: 2>&1
-MKDIR "%SVN_EXPORT_DIR%\Base\3rdparty\AForge" >NUL: 2>&1
-MKDIR "%SVN_EXPORT_DIR%\Base\3rdparty\EmguCV" >NUL: 2>&1
-MKDIR "%SVN_EXPORT_DIR%\Base\3rdparty\OpenCV" >NUL: 2>&1
-MKDIR "%SVN_EXPORT_DIR%\Base\3rdparty\log4net" >NUL: 2>&1
-MKDIR "%SVN_EXPORT_DIR%\Base\3rdparty\NUnit.NET" >NUL: 2>&1
-MKDIR "%SVN_EXPORT_DIR%\Base\3rdparty\NUnit.Silverlight" >NUL: 2>&1
-MKDIR "%SVN_EXPORT_DIR%\Base\3rdparty\Unity" >NUL: 2>&1
-MKDIR "%SVN_EXPORT_DIR%\Base\3rdparty\Kinect" >NUL: 2>&1
+RMDIR /S /Q "%SOURCE_EXPORT_DIR%" >NUL: 2>&1
 
-MKDIR "%SVN_EXPORT_DIR%\WinMD" >NUL: 2>&1
-MKDIR "%SVN_EXPORT_DIR%\WinMD\Source" >NUL: 2>&1
-MKDIR "%SVN_EXPORT_DIR%\WinMD\Source\lib" >NUL: 2>&1
-MKDIR "%SVN_EXPORT_DIR%\WinMD\Clients" >NUL: 2>&1
+FOR /F "tokens=1,2 delims= " %%b IN (build_deployment_source_export.txt) DO (
+ SET f=%%b
 
-"%SVN_TOOL%" export --force "%SVN_URL%/Source/lib" "%SVN_EXPORT_DIR%\Base\Source\lib"
-"%SVN_TOOL%" export --force "%SVN_URL%/Source/test/src" "%SVN_EXPORT_DIR%\Base\Source\test\src"
-"%SVN_TOOL%" export --force "%SVN_URL%/Clients" "%SVN_EXPORT_DIR%\Base\Clients"
-"%SVN_TOOL%" export --force "%SVN_URL%/3rdparty/AForge" "%SVN_EXPORT_DIR%\Base\3rdparty\AForge"
-"%SVN_TOOL%" export --force "%SVN_URL%/3rdparty/EmguCV" "%SVN_EXPORT_DIR%\Base\3rdparty\EmguCV"
-"%SVN_TOOL%" export --force "%SVN_URL%/3rdparty/OpenCV" "%SVN_EXPORT_DIR%\Base\3rdparty\OpenCV"
-"%SVN_TOOL%" export --force "%SVN_URL%/3rdparty/NUnit.NET" "%SVN_EXPORT_DIR%\Base\3rdparty\NUnit.NET"
-"%SVN_TOOL%" export --force "%SVN_URL%/3rdparty/NUnit.Silverlight" "%SVN_EXPORT_DIR%\Base\3rdparty\NUnit.Silverlight"
-"%SVN_TOOL%" export --force "%SVN_URL%/3rdparty/Unity" "%SVN_EXPORT_DIR%\Base\3rdparty\Unity"
-"%SVN_TOOL%" export --force "%SVN_URL%/3rdparty/Kinect" "%SVN_EXPORT_DIR%\Base\3rdparty\Kinect"
-"%SVN_TOOL%" export --force "%SVN_URL%/Key" "%SVN_EXPORT_DIR%\Base\Key"
-"%SVN_TOOL%" export --force "%SVN_URL%/zxing.sln" "%SVN_EXPORT_DIR%\Base"
-"%SVN_TOOL%" export --force "%SVN_URL%/zxing.ce.sln" "%SVN_EXPORT_DIR%\Base"
-"%SVN_TOOL%" export --force "%SVN_URL%/zxing.vs2012.sln" "%SVN_EXPORT_DIR%\Base"
-"%SVN_TOOL%" export --force "%SVN_URL%/zxing.vs2015.sln" "%SVN_EXPORT_DIR%\Base"
-"%SVN_TOOL%" export --force "%SVN_URL%/zxing.monoandroid.sln" "%SVN_EXPORT_DIR%\Base"
-"%SVN_TOOL%" export --force "%SVN_URL%/zxing.monotouch.sln" "%SVN_EXPORT_DIR%\Base"
-"%SVN_TOOL%" export --force "%SVN_URL%/zxing.nunit" "%SVN_EXPORT_DIR%\Base"
-"%SVN_TOOL%" export --force "%SVN_URL%/THANKS" "%SVN_EXPORT_DIR%\Base"
-"%SVN_TOOL%" export --force "%SVN_URL%/COPYING" "%SVN_EXPORT_DIR%\Base"
+ SET d=%%c
+ SET d=!d:%%BINARY_DIR%%=%BINARY_DIR%!
+ SET d=!d:%%CURRENT_DIR%%=%CURRENT_DIR%!
+ 
+ ECHO Export !f! to !d! >> %LOGFILE% 2>&1
+ 
+ MKDIR "%SOURCE_EXPORT_DIR%\!d!" >> %LOGFILE% 2>&1
+  
+ echo "%SVN_TOOL%" export --force "!f!" "%SOURCE_EXPORT_DIR%\!d!" >> %LOGFILE% 2>&1
+ "%SVN_TOOL%" export --force "!f!" "%SOURCE_EXPORT_DIR%\!d!" >> %LOGFILE% 2>&1
+ if ERRORLEVEL 1 GOTO ERROR_OPERATION
+)
 
-"%SVN_TOOL%" export --force "%SVN_URL_WINMD%/Source/lib" "%SVN_EXPORT_DIR%\WinMD\Source\lib"
-"%SVN_TOOL%" export --force "%SVN_URL_WINMD%/Clients" "%SVN_EXPORT_DIR%\WinMD\Clients"
-"%SVN_TOOL%" export --force "%SVN_URL_WINMD%/Key" "%SVN_EXPORT_DIR%\WinMD\Key"
-"%SVN_TOOL%" export --force "%SVN_URL_WINMD%/zxing.vs2012.sln" "%SVN_EXPORT_DIR%\WinMD"
-
-CD "%SVN_EXPORT_DIR%"
-"%ZIP_TOOL%" a -tzip -mx9 -r "%FILENAME_SOURCE%" Base\Source\lib\*.* Base\Source\test\src\*.* Base\Clients\*.* Base\3rdparty\*.* Base\Key\*.* Base\zxing.sln Base\zxing.ce.sln Base\zxing.vs2012.sln Base\zxing.vs2015.sln Base\zxing.monoandroid.sln Base\zxing.monotouch.sln Base\zxing.nunit Base\THANKS Base\COPYING WinMD\Source\lib\*.* WinMD\Clients\*.* WinMD\Key\*.* WinMD\zxing.vs2012.sln
+CD "%SOURCE_EXPORT_DIR%"
+"%ZIP_TOOL%" a -tzip -mx9 -r "%FILENAME_SOURCE%" Base\Source\lib\*.* Base\Source\Bindings\*.* Base\Source\interop\*.* Base\Source\test\src\*.* Base\Clients\*.* Base\3rdparty\*.* Base\Key\*.* Base\zxing.sln Base\zxing.ce.sln Base\zxing.vs2012.sln Base\zxing.vs2015.sln Base\zxing.monoandroid.sln Base\zxing.monotouch.sln Base\zxing.nunit Base\THANKS Base\COPYING WinMD\Source\lib\*.* WinMD\Clients\*.* WinMD\Key\*.* WinMD\zxing.vs2012.sln -xr^^!..svnbridge >> %LOGFILE% 2>&1
 CD "%CURRENT_DIR%"
 
-RMDIR /S /Q "%SVN_EXPORT_DIR%" >NUL: 2>&1
+RMDIR /S /Q "%SOURCE_EXPORT_DIR%" >NUL: 2>&1
 
 
 GOTO END
@@ -160,166 +206,9 @@ ECHO doesn't exist.
 ECHO.
 GOTO END
 
-:BINARY_CE20_NOT_FOUND
-ECHO The Windows CE 2.0 binaries 
-ECHO %BINARY_DIR%\ce2.0\...
-ECHO weren't found.
-ECHO.
-GOTO END
-
-:BINARY_CE35_NOT_FOUND
-ECHO The Windows CE 3.5 binaries 
-ECHO %BINARY_DIR%\ce3.5\...
-ECHO weren't found.
-ECHO.
-GOTO END
-
-:BINARY_NET20_NOT_FOUND
-ECHO The .Net 2.0 binaries 
-ECHO %BINARY_DIR%\net2.0\...
-ECHO weren't found.
-ECHO.
-GOTO END
-
-:BINARY_NET35_NOT_FOUND
-ECHO The .Net 3.5 binaries 
-ECHO %BINARY_DIR%\net3.5\...
-ECHO weren't found.
-ECHO.
-GOTO END
-
-:BINARY_NET40_NOT_FOUND
-ECHO The .Net 4.0 binaries 
-ECHO %BINARY_DIR%\net4.0\...
-ECHO weren't found.
-ECHO.
-GOTO END
-
-:BINARY_NET40_PRESENTATION_NOT_FOUND
-ECHO The .Net 4.0 Presentation binaries 
-ECHO %BINARY_DIR%\net4.0\...
-ECHO weren't found.
-ECHO.
-GOTO END
-
-:BINARY_NET45_NOT_FOUND
-ECHO The .Net 4.5 binaries 
-ECHO %BINARY_DIR%\net4.5\...
-ECHO weren't found.
-ECHO.
-GOTO END
-
-:BINARY_NET45_PRESENTATION_NOT_FOUND
-ECHO The .Net 4.5 Presentation binaries 
-ECHO %BINARY_DIR%\net4.5\...
-ECHO weren't found.
-ECHO.
-GOTO END
-
-:BINARY_NET46_NOT_FOUND
-ECHO The .Net 4.6 binaries 
-ECHO %BINARY_DIR%\net4.6\...
-ECHO weren't found.
-ECHO.
-GOTO END
-
-:BINARY_NET46_PRESENTATION_NOT_FOUND
-ECHO The .Net 4.6 Presentation binaries 
-ECHO %BINARY_DIR%\net4.6\...
-ECHO weren't found.
-ECHO.
-GOTO END
-
-:BINARY_SL40_NOT_FOUND
-ECHO The Silverlight 4.0 binaries 
-ECHO %BINARY_DIR%\sl4.0\...
-ECHO weren't found.
-ECHO.
-GOTO END
-
-:BINARY_SL50_NOT_FOUND
-ECHO The Silverlight 5.0 binaries 
-ECHO %BINARY_DIR%\sl5.0\...
-ECHO weren't found.
-ECHO.
-GOTO END
-
-:BINARY_UNITY_NOT_FOUND
-ECHO The .Net 2.0 Unity binaries 
-ECHO %BINARY_DIR%\unity\...
-ECHO weren't found.
-ECHO.
-GOTO END
-
-:BINARY_WP70_NOT_FOUND
-ECHO The Windows Phone 7.0 binaries 
-ECHO %BINARY_DIR%\wp7.0\...
-ECHO weren't found.
-ECHO.
-GOTO END
-
-:BINARY_WP71_NOT_FOUND
-ECHO The Windows Phone 7.1 binaries 
-ECHO %BINARY_DIR%\wp7.1\...
-ECHO weren't found.
-ECHO.
-GOTO END
-
-:BINARY_WP80_NOT_FOUND
-ECHO The Windows Phone 8.0 binaries 
-ECHO %BINARY_DIR%\wp8.0\...
-ECHO weren't found.
-ECHO.
-GOTO END
-
-:BINARY_WINRT_NOT_FOUND
-ECHO The Windows RT binaries 
-ECHO %BINARY_DIR%\winrt\...
-ECHO weren't found.
-ECHO.
-GOTO END
-
-:BINARY_MONODROID_NOT_FOUND
-ECHO The MonoDroid binaries 
-ECHO %BINARY_DIR%\monodroid\...
-ECHO weren't found.
-ECHO.
-GOTO END
-
-:BINARY_WINRTCOMPONENTS_NOT_FOUND
-ECHO The WinRT Runtime Components binaries 
-ECHO %BINARY_DIR%\winmd\...
-ECHO weren't found.
-ECHO.
-GOTO END
-
-:BINARY_PORTABLE_NOT_FOUND
-ECHO The Portable binaries 
-ECHO %BINARY_DIR%\portable\...
-ECHO weren't found.
-ECHO.
-GOTO END
-
-:BINARY_KINECT_NOT_FOUND
-ECHO The Kinect binaries 
-ECHO %BINARY_DIR%\kinect\...
-ECHO weren't found.
-ECHO.
-GOTO END
-
-:BINARY_UWP_NOT_FOUND
-ECHO The UWP binaries 
-ECHO %BINARY_DIR%\uwp\...
-ECHO weren't found.
-ECHO.
-GOTO END
-
-:BINARY_NETSTANDARD16_NOT_FOUND
-ECHO The .Net Standard binaries 
-ECHO %BINARY_DIR%\netstandard1.6\...
-ECHO weren't found.
-ECHO.
-GOTO END
+:ERROR_OPERATION
+ECHO An error occurred, please check the logfile %LOGFILE%
 
 :END
 
+ENDLOCAL

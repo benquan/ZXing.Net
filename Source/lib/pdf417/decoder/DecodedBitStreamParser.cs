@@ -17,7 +17,7 @@
 using System;
 using System.Text;
 
-#if (SILVERLIGHT4 || SILVERLIGHT5 || NET40 || NET45 || NETFX_CORE || NETSTANDARD) && !NETSTANDARD1_0
+#if (SILVERLIGHT4 || SILVERLIGHT5 || NET40 || NET45 || NET46 || NET47 || NETFX_CORE || NETSTANDARD) && !NETSTANDARD1_0
 using System.Numerics;
 #else
 using BigIntegerLibrary;
@@ -69,7 +69,7 @@ namespace ZXing.PDF417.Internal
 
       private static readonly char[] MIXED_CHARS = "0123456789&\r\t,:#-.$/+%*=^".ToCharArray();
 
-#if (SILVERLIGHT4 || SILVERLIGHT5 || NET40 || NET45 || NETFX_CORE || NETSTANDARD) && !NETSTANDARD1_0
+#if (SILVERLIGHT4 || SILVERLIGHT5 || NET40 || NET45 || NET46 || NET47 || NETFX_CORE || NETSTANDARD) && !NETSTANDARD1_0
       /// <summary>
       /// Table containing values for the exponent of 900.
       /// This is used in the numeric compaction decode algorithm.
@@ -757,22 +757,20 @@ namespace ZXing.PDF417.Internal
                      break;
                }
             }
-            if (count % MAX_NUMERIC_CODEWORDS == 0 ||
+            if ((count % MAX_NUMERIC_CODEWORDS == 0 ||
                 code == NUMERIC_COMPACTION_MODE_LATCH ||
-                end)
+                end) &&
+                count > 0)
             {
                // Re-invoking Numeric Compaction mode (by using codeword 902
                // while in Numeric Compaction mode) serves  to terminate the
                // current Numeric Compaction mode grouping as described in 5.4.4.2,
                // and then to start a new one grouping.
-               if (count > 0)
-               {
-                  String s = decodeBase900toBase10(numericCodewords, count);
-                  if (s == null)
-                     return -1;
-                  result.Append(s);
-                  count = 0;
-               }
+               var s = decodeBase900toBase10(numericCodewords, count);
+               if (s == null)
+                  return -1;
+               result.Append(s);
+               count = 0;
             }
          }
          return codeIndex;
@@ -820,7 +818,7 @@ namespace ZXing.PDF417.Internal
       /// </summary>
       private static String decodeBase900toBase10(int[] codewords, int count)
       {
-#if (SILVERLIGHT4 || SILVERLIGHT5 || NET40 || NET45 || NETFX_CORE || NETSTANDARD) && !NETSTANDARD1_0
+#if (SILVERLIGHT4 || SILVERLIGHT5 || NET40 || NET45 || NET46 || NET47 || NETFX_CORE || NETSTANDARD) && !NETSTANDARD1_0
          BigInteger result = BigInteger.Zero;
          for (int i = 0; i < count; i++)
          {
