@@ -41,9 +41,9 @@ namespace ZXing.OneD
         private const char ESCAPE_FNC_3 = '\u00f3';
         private const char ESCAPE_FNC_4 = '\u00f4';
 
-        private const int CODE_FNC_1 = 102;   // Code A, Code B, Code C
-        private const int CODE_FNC_2 = 97;    // Code A, Code B
-        private const int CODE_FNC_3 = 96;    // Code A, Code B
+        private const int CODE_FNC_1 = 102; // Code A, Code B, Code C
+        private const int CODE_FNC_2 = 97; // Code A, Code B
+        private const int CODE_FNC_3 = 96; // Code A, Code B
         private const int CODE_FNC_4_A = 101; // Code A
         private const int CODE_FNC_4_B = 100; // Code B
 
@@ -58,17 +58,19 @@ namespace ZXing.OneD
 
         private bool forceCodesetB;
 
-        public override BitMatrix encode(String contents,
-                                BarcodeFormat format,
-                                int width,
-                                int height,
-                                IDictionary<EncodeHintType, object> hints)
-        {
-            if (format != BarcodeFormat.CODE_128)
-            {
-                throw new ArgumentException("Can only encode CODE_128, but got " + format);
-            }
+        private static readonly IList<BarcodeFormat> supportedWriteFormats = new List<BarcodeFormat> { BarcodeFormat.CODE_128 };
 
+        protected override IList<BarcodeFormat> SupportedWriteFormats
+        {
+            get { return supportedWriteFormats; }
+        }
+
+        public override BitMatrix encode(String contents,
+            BarcodeFormat format,
+            int width,
+            int height,
+            IDictionary<EncodeHintType, object> hints)
+        {
             forceCodesetB = (hints != null &&
                              hints.ContainsKey(EncodeHintType.CODE128_FORCE_CODESET_B) &&
                              hints[EncodeHintType.CODE128_FORCE_CODESET_B] != null &&
@@ -87,7 +89,7 @@ namespace ZXing.OneD
             return base.encode(contents, format, width, height, hints);
         }
 
-        override public bool[] encode(String contents)
+        public override bool[] encode(String contents)
         {
             int length = contents.Length;
             // Check length
@@ -275,6 +277,10 @@ namespace ZXing.OneD
             CType lookahead = findCType(value, start);
             if (lookahead == CType.ONE_DIGIT)
             {
+                if (oldCode == CODE_CODE_A)
+                {
+                    return CODE_CODE_A;
+                }
                 return CODE_CODE_B;
             }
             if (lookahead == CType.UNCODABLE)
@@ -282,11 +288,17 @@ namespace ZXing.OneD
                 if (start < value.Length)
                 {
                     var c = value[start];
-                    if (c < ' ' || (oldCode == CODE_CODE_A && c < '`'))
-                        // can continue in code A, encodes ASCII 0 to 95
+                    if (c < ' ' || (oldCode == CODE_CODE_A && (c < '`' || (c >= ESCAPE_FNC_1 && c <= ESCAPE_FNC_4))))
+                    {
+                        // can continue in code A, encodes ASCII 0 to 95 or FNC1 to FNC4
                         return CODE_CODE_A;
+                    }
                 }
                 return CODE_CODE_B; // no choice
+            }
+            if (oldCode == CODE_CODE_A && lookahead == CType.FNC_1)
+            {
+                return CODE_CODE_A;
             }
             if (oldCode == CODE_CODE_C)
             {
@@ -306,10 +318,12 @@ namespace ZXing.OneD
                     return CODE_CODE_B; // not worth switching now
                 }
                 if (lookahead == CType.FNC_1)
-                { // two digits, then FNC_1...
+                {
+                    // two digits, then FNC_1...
                     lookahead = findCType(value, start + 3);
                     if (lookahead == CType.TWO_DIGITS)
-                    { // then two more digits, switch
+                    {
+                        // then two more digits, switch
                         return forceCodesetB ? CODE_CODE_B : CODE_CODE_C;
                     }
                     else
@@ -325,18 +339,21 @@ namespace ZXing.OneD
                     index += 2;
                 }
                 if (lookahead == CType.ONE_DIGIT)
-                { // odd number of digits, switch later
+                {
+                    // odd number of digits, switch later
                     return CODE_CODE_B;
                 }
                 return forceCodesetB ? CODE_CODE_B : CODE_CODE_C; // even number of digits, switch now
             }
             // Here oldCode == 0, which means we are choosing the initial code
             if (lookahead == CType.FNC_1)
-            { // ignore FNC_1
+            {
+                // ignore FNC_1
                 lookahead = findCType(value, start + 1);
             }
             if (lookahead == CType.TWO_DIGITS)
-            { // at least two digits, start in code C
+            {
+                // at least two digits, start in code C
                 return forceCodesetB ? CODE_CODE_B : CODE_CODE_C;
             }
             return CODE_CODE_B;

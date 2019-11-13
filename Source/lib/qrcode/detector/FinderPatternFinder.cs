@@ -31,19 +31,21 @@ namespace ZXing.QrCode.Internal
     public class FinderPatternFinder
     {
         private const int CENTER_QUORUM = 2;
-        private static EstimatedModuleComparator moduleComparator = new EstimatedModuleComparator();
+        private static readonly EstimatedModuleComparator moduleComparator = new EstimatedModuleComparator();
         /// <summary>
         /// 1 pixel/module times 3 modules/center
         /// </summary>
         protected internal const int MIN_SKIP = 3;
+
         /// <summary>
         /// support up to version 20 for mobile clients
         /// </summary>
         protected internal const int MAX_MODULES = 97;
+
         private const int INTEGER_MATH_SHIFT = 8;
 
         private readonly BitMatrix image;
-        private List<FinderPattern> possibleCenters;
+        private readonly List<FinderPattern> possibleCenters;
         private bool hasSkipped;
         private readonly int[] crossCheckStateCount;
         private readonly ResultPointCallback resultPointCallback;
@@ -53,7 +55,7 @@ namespace ZXing.QrCode.Internal
         /// </summary>
         /// <param name="image">image to search</param>
         public FinderPatternFinder(BitMatrix image)
-           : this(image, null)
+            : this(image, null)
         {
         }
 
@@ -75,10 +77,7 @@ namespace ZXing.QrCode.Internal
         /// </summary>
         protected internal virtual BitMatrix Image
         {
-            get
-            {
-                return image;
-            }
+            get { return image; }
         }
 
         /// <summary>
@@ -86,10 +85,7 @@ namespace ZXing.QrCode.Internal
         /// </summary>
         protected internal virtual List<FinderPattern> PossibleCenters
         {
-            get
-            {
-                return possibleCenters;
-            }
+            get { return possibleCenters; }
         }
 
         internal virtual FinderPatternInfo find(IDictionary<DecodeHintType, object> hints)
@@ -258,10 +254,10 @@ namespace ZXing.QrCode.Internal
             int maxVariance = moduleSize / 2;
             // Allow less than 50% variance from 1-1-3-1-1 proportions
             return Math.Abs(moduleSize - (stateCount[0] << INTEGER_MATH_SHIFT)) < maxVariance &&
-                Math.Abs(moduleSize - (stateCount[1] << INTEGER_MATH_SHIFT)) < maxVariance &&
-                Math.Abs(3 * moduleSize - (stateCount[2] << INTEGER_MATH_SHIFT)) < 3 * maxVariance &&
-                Math.Abs(moduleSize - (stateCount[3] << INTEGER_MATH_SHIFT)) < maxVariance &&
-                Math.Abs(moduleSize - (stateCount[4] << INTEGER_MATH_SHIFT)) < maxVariance;
+                   Math.Abs(moduleSize - (stateCount[1] << INTEGER_MATH_SHIFT)) < maxVariance &&
+                   Math.Abs(3 * moduleSize - (stateCount[2] << INTEGER_MATH_SHIFT)) < 3 * maxVariance &&
+                   Math.Abs(moduleSize - (stateCount[3] << INTEGER_MATH_SHIFT)) < maxVariance &&
+                   Math.Abs(moduleSize - (stateCount[4] << INTEGER_MATH_SHIFT)) < maxVariance;
         }
 
         /// <summary>
@@ -289,11 +285,11 @@ namespace ZXing.QrCode.Internal
             float maxVariance = moduleSize / 1.333f;
             // Allow less than 75% variance from 1-1-3-1-1 proportions
             return
-               Math.Abs(moduleSize - stateCount[0]) < maxVariance &&
-               Math.Abs(moduleSize - stateCount[1]) < maxVariance &&
-               Math.Abs(3.0f * moduleSize - stateCount[2]) < 3 * maxVariance &&
-               Math.Abs(moduleSize - stateCount[3]) < maxVariance &&
-               Math.Abs(moduleSize - stateCount[4]) < maxVariance;
+                Math.Abs(moduleSize - stateCount[0]) < maxVariance &&
+                Math.Abs(moduleSize - stateCount[1]) < maxVariance &&
+                Math.Abs(3.0f * moduleSize - stateCount[2]) < 3 * maxVariance &&
+                Math.Abs(moduleSize - stateCount[3]) < maxVariance &&
+                Math.Abs(moduleSize - stateCount[4]) < maxVariance;
         }
 
         private int[] CrossCheckStateCount
@@ -304,6 +300,7 @@ namespace ZXing.QrCode.Internal
                 return crossCheckStateCount;
             }
         }
+
         protected void clearCounts(int[] counts)
         {
             for (int x = 0; x < counts.Length; x++)
@@ -603,16 +600,16 @@ namespace ZXing.QrCode.Internal
         protected bool handlePossibleCenter(int[] stateCount, int i, int j)
         {
             int stateCountTotal = stateCount[0] + stateCount[1] + stateCount[2] + stateCount[3] +
-                stateCount[4];
+                                  stateCount[4];
             float? centerJ = centerFromEnd(stateCount, j);
             if (centerJ == null)
                 return false;
-            float? centerI = crossCheckVertical(i, (int)centerJ.Value, stateCount[2], stateCountTotal);
+            float? centerI = crossCheckVertical(i, (int) centerJ.Value, stateCount[2], stateCountTotal);
             if (centerI != null)
             {
                 // Re-cross check
-                centerJ = crossCheckHorizontal((int)centerJ.Value, (int)centerI.Value, stateCount[2], stateCountTotal);
-                if (centerJ != null && crossCheckDiagonal((int)centerI, (int)centerJ))
+                centerJ = crossCheckHorizontal((int) centerJ.Value, (int) centerI.Value, stateCount[2], stateCountTotal);
+                if (centerJ != null && crossCheckDiagonal((int) centerI, (int) centerJ))
                 {
                     float estimatedModuleSize = stateCountTotal / 7.0f;
                     bool found = false;
@@ -676,7 +673,7 @@ namespace ZXing.QrCode.Internal
                         // This is the case where you find top left last.
                         hasSkipped = true;
                         //UPGRADE_WARNING: Data types in Visual C# might be different.  Verify the accuracy of narrowing conversions. "ms-help://MS.VSCC.v80/dv_commoner/local/redirect.htm?index='!DefaultContextWindowIndex'&keyword='jlca1042'"
-                        return (int)(Math.Abs(firstConfirmedCenter.X - center.X) - Math.Abs(firstConfirmedCenter.Y - center.Y)) / 2;
+                        return (int) (Math.Abs(firstConfirmedCenter.X - center.X) - Math.Abs(firstConfirmedCenter.Y - center.Y)) / 2;
                     }
                 }
             }
