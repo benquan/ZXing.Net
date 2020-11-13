@@ -83,7 +83,7 @@ namespace ZXing.PDF417.Internal
         /// </returns>
         public static PDF417DetectorResult detect(BinaryBitmap image, IDictionary<DecodeHintType, object> hints, bool multiple)
         {
-            // TODO detection improvement, tryHarder could try several different luminance thresholds/blackpoints or even 
+            // TODO detection improvement, tryHarder could try several different luminance thresholds/blackpoints or even
             // different binarizers (SF: or different Skipped Row Counts/Steps?)
             //boolean tryHarder = hints != null && hints.containsKey(DecodeHintType.TRY_HARDER);
 
@@ -214,120 +214,118 @@ namespace ZXing.PDF417.Internal
             }
         }
 
-      /// <summary>
-      /// Finds the rows with the given pattern.
-      /// </summary>
-      /// <returns>The rows with pattern.</returns>
-      /// <param name="matrix">Matrix.</param>
-      /// <param name="height">Height.</param>
-      /// <param name="width">Width.</param>
-      /// <param name="startRow">Start row.</param>
-      /// <param name="startColumn">Start column.</param>
-      /// <param name="pattern">Pattern.</param>
-      private static ResultPoint[] findRowsWithPattern(
-         BitMatrix matrix,
-         int height,
-         int width,
-         int startRow,
-         int startColumn,
-         int[] pattern)
-      {
-         ResultPoint[] result = new ResultPoint[4];
-         bool found = false;
-         int[] counters = new int[pattern.Length];
-         for (; startRow < height; startRow += ROW_STEP)
-         {
-            int[] loc = findGuardPattern(matrix, startColumn, startRow, width, false, pattern, counters);
-            if (loc != null)
+        /// <summary>
+        /// Finds the rows with the given pattern.
+        /// </summary>
+        /// <returns>The rows with pattern.</returns>
+        /// <param name="matrix">Matrix.</param>
+        /// <param name="height">Height.</param>
+        /// <param name="width">Width.</param>
+        /// <param name="startRow">Start row.</param>
+        /// <param name="startColumn">Start column.</param>
+        /// <param name="pattern">Pattern.</param>
+        private static ResultPoint[] findRowsWithPattern(
+           BitMatrix matrix,
+           int height,
+           int width,
+           int startRow,
+           int startColumn,
+           int[] pattern)
+        {
+            ResultPoint[] result = new ResultPoint[4];
+            bool found = false;
+            int[] counters = new int[pattern.Length];
+            for (; startRow < height; startRow += ROW_STEP)
             {
-
-                // Q-Soft Check if blacks are thicker than white
-
-                if (pattern[0] == 8)
+                int[] loc = findGuardPattern(matrix, startColumn, startRow, width, pattern, counters);
+                if (loc != null)
                 {
 
-                    int b = 0;
-                    int w = 0;
-                    for (int i = 1; i <= 6; i++)
+                    // Q-Soft Check if blacks are thicker than white
+
+                    if (pattern[0] == 8)
                     {
-                        if (i % 2 == 0)
-                            b += counters[i];
-                        else
-                            w += counters[i];
+
+                        int b = 0;
+                        int w = 0;
+                        for (int i = 1; i <= 6; i++)
+                        {
+                            if (i % 2 == 0)
+                                b += counters[i];
+                            else
+                                w += counters[i];
+                        }
+
+                        float f = (float)w / (float)b;
+                        Console.WriteLine("white to Black: " + f);
+                        matrix.ThickBlack = (f < BLACK_THRESHOLD);
+
                     }
 
-                    float f = (float)w / (float)b;
-                    Console.WriteLine("white to Black: " + f);
-                    matrix.ThickBlack = (f < BLACK_THRESHOLD);
-
+                    while (startRow > 0)
+                    {
+                        int[] previousRowLoc = findGuardPattern(matrix, startColumn, --startRow, width, pattern, counters);
+                        if (previousRowLoc != null)
+                        {
+                            loc = previousRowLoc;
+                        }
+                        else
+                        {
+                            startRow++;
+                            break;
+                        }
+                    }
+                    result[0] = new ResultPoint(loc[0], startRow);
+                    result[1] = new ResultPoint(loc[1], startRow);
+                    found = true;
+                    break;
                 }
-
-
-
-               while (startRow > 0)
-               {
-                  int[] previousRowLoc = findGuardPattern(matrix, startColumn, --startRow, width, false, pattern, counters);
-                  if (previousRowLoc != null)
-                  {
-                     loc = previousRowLoc;
-                  }
-                  else
-                  {
-                     startRow++;
-                     break;
-                  }
-               }
-               result[0] = new ResultPoint(loc[0], startRow);
-               result[1] = new ResultPoint(loc[1], startRow);
-               found = true;
-               break;
             }
-         }
-         int stopRow = startRow + 1;
-         // Last row of the current symbol that contains pattern
-         if (found)
-         {
-            int skippedRowCount = 0;
-            int[] previousRowLoc = {(int) result[0].X, (int) result[1].X};
-            for (; stopRow < height; stopRow++)
+            int stopRow = startRow + 1;
+            // Last row of the current symbol that contains pattern
+            if (found)
             {
-               int[] loc = findGuardPattern(matrix, previousRowLoc[0], stopRow, width, false, pattern, counters);
-               // a found pattern is only considered to belong to the same barcode if the start and end positions
-               // don't differ too much. Pattern drift should be not bigger than two for consecutive rows. With
-               // a higher number of skipped rows drift could be larger. To keep it simple for now, we allow a slightly
-               // larger drift and don't check for skipped rows.
-               if (loc != null &&
-                   Math.Abs(previousRowLoc[0] - loc[0]) < MAX_PATTERN_DRIFT &&
-                   Math.Abs(previousRowLoc[1] - loc[1]) < MAX_PATTERN_DRIFT)
-               {
-                  previousRowLoc = loc;
-                  skippedRowCount = 0;
-               }
-               else
-               {
-                  if (skippedRowCount > SKIPPED_ROW_COUNT_MAX)
-                  {
-                     break;
-                  }
-                  else
-                  {
-                     skippedRowCount++;
-                  }
-               }
+                int skippedRowCount = 0;
+                int[] previousRowLoc = { (int)result[0].X, (int)result[1].X };
+                for (; stopRow < height; stopRow++)
+                {
+                    int[] loc = findGuardPattern(matrix, previousRowLoc[0], stopRow, width, pattern, counters);
+                    // a found pattern is only considered to belong to the same barcode if the start and end positions
+                    // don't differ too much. Pattern drift should be not bigger than two for consecutive rows. With
+                    // a higher number of skipped rows drift could be larger. To keep it simple for now, we allow a slightly
+                    // larger drift and don't check for skipped rows.
+                    if (loc != null &&
+                        Math.Abs(previousRowLoc[0] - loc[0]) < MAX_PATTERN_DRIFT &&
+                        Math.Abs(previousRowLoc[1] - loc[1]) < MAX_PATTERN_DRIFT)
+                    {
+                        previousRowLoc = loc;
+                        skippedRowCount = 0;
+                    }
+                    else
+                    {
+                        if (skippedRowCount > SKIPPED_ROW_COUNT_MAX)
+                        {
+                            break;
+                        }
+                        else
+                        {
+                            skippedRowCount++;
+                        }
+                    }
+                }
+                stopRow -= skippedRowCount + 1;
+                result[2] = new ResultPoint(previousRowLoc[0], stopRow);
+                result[3] = new ResultPoint(previousRowLoc[1], stopRow);
             }
-            stopRow -= skippedRowCount + 1;
-            result[2] = new ResultPoint(previousRowLoc[0], stopRow);
-            result[3] = new ResultPoint(previousRowLoc[1], stopRow);
-         }
-         if (stopRow - startRow < BARCODE_MIN_HEIGHT)
-         {
-            for (int i = 0; i < result.Length; i++)
+            if (stopRow - startRow < BARCODE_MIN_HEIGHT)
             {
-               result[i] = null;
+                for (int i = 0; i < result.Length; i++)
+                {
+                    result[i] = null;
+                }
             }
-         }
-         return result;
-      }
+            return result;
+        }
 
         /// <summary>
         /// Finds the guard pattern.  Uses System.Linq.Enumerable.Repeat to fill in counters.  This might be a performance issue?
@@ -337,7 +335,6 @@ namespace ZXing.PDF417.Internal
         /// <param name="column">column x position to start search.</param>
         /// <param name="row">row y position to start search.</param>
         /// <param name="width">width the number of pixels to search on this row.</param>
-        /// <param name="whiteFirst">If set to <c>true</c> search the white patterns first.</param>
         /// <param name="pattern">pattern of counts of number of black and white pixels that are being searched for as a pattern.</param>
         /// <param name="counters">counters array of counters, as long as pattern, to re-use .</param>
         private static int[] findGuardPattern(
@@ -345,7 +342,6 @@ namespace ZXing.PDF417.Internal
            int column,
            int row,
            int width,
-           bool whiteFirst,
            int[] pattern,
            int[] counters)
         {
@@ -361,7 +357,7 @@ namespace ZXing.PDF417.Internal
             var x = patternStart;
             var counterPosition = 0;
             var patternLength = pattern.Length;
-            for (var isWhite = whiteFirst; x < width; x++)
+            for (var isWhite = false; x < width; x++)
             {
                 var pixel = matrix[x, row];
                 if (pixel != isWhite)
@@ -372,7 +368,7 @@ namespace ZXing.PDF417.Internal
                 {
                     if (counterPosition == patternLength - 1)
                     {
-                        if (patternMatchVariance(counters, pattern, MAX_INDIVIDUAL_VARIANCE) < MAX_AVG_VARIANCE)
+                        if (patternMatchVariance(counters, pattern) < MAX_AVG_VARIANCE)
                         {
                             return new int[] { patternStart, x };
                         }
@@ -391,7 +387,7 @@ namespace ZXing.PDF417.Internal
                 }
             }
             if (counterPosition == patternLength - 1 &&
-                patternMatchVariance(counters, pattern, MAX_INDIVIDUAL_VARIANCE) < MAX_AVG_VARIANCE)
+                patternMatchVariance(counters, pattern) < MAX_AVG_VARIANCE)
             {
                 return new int[] { patternStart, x - 1 };
             }
@@ -413,8 +409,7 @@ namespace ZXing.PDF417.Internal
         /// </returns>
         /// <param name="counters">observed counters.</param>
         /// <param name="pattern">expected pattern.</param>
-        /// <param name="maxIndividualVariance">The most any counter can differ before we give up.</param>
-        private static int patternMatchVariance(int[] counters, int[] pattern, int maxIndividualVariance)
+        private static int patternMatchVariance(int[] counters, int[] pattern)
         {
             int numCounters = counters.Length;
             int total = 0;
@@ -434,7 +429,7 @@ namespace ZXing.PDF417.Internal
             // Scale up patternLength so that intermediate values below like scaledCounter will have
             // more "significant digits".
             int unitBarWidth = (total << INTEGER_MATH_SHIFT) / patternLength;
-            maxIndividualVariance = (maxIndividualVariance * unitBarWidth) >> INTEGER_MATH_SHIFT;
+            int maxIndividualVariance = (MAX_INDIVIDUAL_VARIANCE * unitBarWidth) >> INTEGER_MATH_SHIFT;
 
             int totalVariance = 0;
             for (int x = 0; x < numCounters; x++)
