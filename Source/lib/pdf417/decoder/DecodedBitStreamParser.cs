@@ -122,6 +122,7 @@ namespace ZXing.PDF417.Internal
             int code = codewords[codeIndex++];
             var resultMetadata = new PDF417ResultMetadata();
             Encoding encoding = startWithEncoding;
+            bool resultIsBinary = false; // Q-Soft Added
 
             while (codeIndex <= codewords[0])
             {
@@ -132,6 +133,7 @@ namespace ZXing.PDF417.Internal
                         break;
                     case BYTE_COMPACTION_MODE_LATCH:
                     case BYTE_COMPACTION_MODE_LATCH_6:
+                        resultIsBinary = true; // Q-Soft added
                         codeIndex = byteCompaction(code, codewords, encoding ?? (encoding = CharacterSetECI.getEncoding(PDF417HighLevelEncoder.DEFAULT_ENCODING_NAME)), codeIndex, result);
                         break;
                     case MODE_SHIFT_TO_BYTE_COMPACTION_MODE:
@@ -191,7 +193,14 @@ namespace ZXing.PDF417.Internal
                 return null;
             }
 
-            var decoderResult = new DecoderResult(null, result.ToString(), null, ecLevel);
+            // Q-Soft Add Raw data if Binary data is present.
+            byte[] rawData = null;
+            if (resultIsBinary)
+                rawData = Encoding.GetEncoding(PDF417HighLevelEncoder.DEFAULT_ENCODING_NAME).GetBytes(result.ToString());
+
+            var decoderResult = new DecoderResult(rawData, result.ToString(), null, ecLevel);
+            // Q-Soft End
+
             decoderResult.Other = resultMetadata;
             return decoderResult;
         }
