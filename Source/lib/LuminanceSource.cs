@@ -15,7 +15,9 @@
 */
 
 using System;
+using System.IO;
 using System.Text;
+using System.Text.RegularExpressions; // Q-Soft
 
 namespace ZXing
 {
@@ -201,6 +203,14 @@ namespace ZXing
                 }
                 result.Append('\n');
             }
+
+            // Q-Soft
+            string myTempFile = Path.Combine(Path.GetTempPath(), "Luminance.txt");
+            int count = new Regex(Regex.Escape("\n")).Matches(result.ToString()).Count;
+            System.Diagnostics.Debug.WriteLine(count);
+            File.WriteAllText(myTempFile, result.ToString());
+            // Q-Soft End
+
             return result.ToString();
         }
     }

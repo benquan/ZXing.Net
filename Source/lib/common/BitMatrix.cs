@@ -642,7 +642,8 @@ namespace ZXing.Common
         /// </returns>
         public override String ToString()
         {
-            return ToString("X ", "  ", Environment.NewLine);
+            //return ToString("X", " ", Environment.NewLine); // Q-Soft
+            return ToString("X", " ", "O");
         }
 
         /// <summary>
