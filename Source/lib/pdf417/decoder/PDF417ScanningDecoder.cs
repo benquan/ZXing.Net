@@ -626,6 +626,24 @@ namespace ZXing.PDF417.Internal
             //      }
             //    }
 
+            // Q-Soft implementation: removed comments and added condition
+            if (image.ThickBlack)
+            {
+                for (int i = 0; i < moduleBitCount.Length; i++)
+                {
+                    if (i % 2 == 0)
+                    {
+                        moduleBitCount[i]--;
+                    }
+                    else
+                    {
+                        moduleBitCount[i]++;
+                    }
+                }
+            }
+            // Q-Soft End
+
+
             // We could also use the width of surrounding codewords for more accurate results, but this seems
             // sufficient for now
             if (!checkCodewordSkew(codewordBitCount, minCodewordWidth, maxCodewordWidth))

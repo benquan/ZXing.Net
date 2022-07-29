@@ -38,6 +38,17 @@ namespace ZXing.Common
         private int rowSize;
         private int[] bits;
 
+        // Q-Soft added
+        private bool thickBlack;
+
+        public bool ThickBlack
+        {
+            get { return thickBlack; }
+
+            set { thickBlack = value; }
+        }
+        // Q-Soft End
+
         /// <returns> The width of the matrix
         /// </returns>
         public int Width

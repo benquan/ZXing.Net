@@ -53,6 +53,9 @@ namespace ZXing.PDF417.Internal
         private const int MAX_PIXEL_DRIFT = 3;
         private const int MAX_PATTERN_DRIFT = 5;
 
+        // Q-Soft
+        private const float BLACK_THRESHOLD = 0.90F;
+
         /// <summary>
         /// if we set the value too low, then we don't detect the correct height of the bar if the start patterns are damaged.
         /// if we set the value too high, then we might detect the start pattern from a neighbor barcode.
@@ -246,6 +249,26 @@ namespace ZXing.PDF417.Internal
                 int[] loc = findGuardPattern(matrix, startColumn, startRow, width, pattern, counters);
                 if (loc != null)
                 {
+
+                    // Q-Soft Check if blacks are thicker than white
+                    if (pattern[0] == 8)
+                    {
+                        int b = 0;
+                        int w = 0;
+                        for (int i = 1; i <= 6; i++)
+                        {
+                            if (i % 2 == 0)
+                                b += counters[i];
+                            else
+                                w += counters[i];
+                        }
+
+                        float f = (float)w / (float)b;
+                        Console.WriteLine("white to Black: " + f);
+                        matrix.ThickBlack = (f < BLACK_THRESHOLD);
+                    }
+                    // Q-Soft End
+
                     while (startRow > 0)
                     {
                         int[] previousRowLoc = findGuardPattern(matrix, startColumn, --startRow, width, pattern, counters);
