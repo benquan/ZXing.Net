@@ -15,6 +15,7 @@
 */
 
 using System;
+using System.IO;
 using System.Text;
 
 namespace ZXing.Common
@@ -642,8 +643,14 @@ namespace ZXing.Common
         /// </returns>
         public override String ToString()
         {
+
+            // Q-Soft
+            //string myTempFile = Path.Combine(Path.GetTempPath(), "BitMatrix.txt");
+            //System.Diagnostics.Debug.WriteLine(myTempFile);
+            //File.WriteAllText(myTempFile, ToString("X", " ", Environment.NewLine));
+
             //return ToString("X", " ", Environment.NewLine); // Q-Soft
-            return ToString("X", " ", "O");
+            return ToString("X", " ", Environment.NewLine);
         }
 
         /// <summary>

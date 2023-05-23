@@ -65,6 +65,8 @@ namespace ZXing.PDF417.Internal
             if (boundingBox == null)
                 return null;
 
+            System.Diagnostics.Debug.WriteLine("Found Bounding Box");
+
             DetectionResultRowIndicatorColumn leftRowIndicatorColumn = null;
             DetectionResultRowIndicatorColumn rightRowIndicatorColumn = null;
             DetectionResult detectionResult;
@@ -146,6 +148,11 @@ namespace ZXing.PDF417.Internal
                     }
                 }
             }
+
+            System.Diagnostics.Debug.WriteLine("Decoding Box");
+
+            gData.detectionResult = detectionResult.ToString();
+
             return createDecoderResult(detectionResult, startWithEncoding);
         }
 
@@ -383,6 +390,13 @@ namespace ZXing.PDF417.Internal
             {
                 ambiguousIndexValues[i] = ambiguousIndexValuesList[i];
             }
+
+            gData.erasures = erasures.Count;
+            gData.ambiguousIndexValues = ambiguousIndexValues.Length;
+
+            System.Diagnostics.Debug.WriteLine($"Erasures: {erasures.Count}" );
+            System.Diagnostics.Debug.WriteLine($"Ambiguous: {ambiguousIndexValues.Length}" );
+
             return createDecoderResultFromAmbiguousValues(detectionResult.ErrorCorrectionLevel, codewords,
                                                           erasures.ToArray(), ambiguousIndexesList.ToArray(), ambiguousIndexValues, startWithEncoding);
         }

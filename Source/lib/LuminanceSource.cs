@@ -205,10 +205,11 @@ namespace ZXing
             }
 
             // Q-Soft
-            string myTempFile = Path.Combine(Path.GetTempPath(), "Luminance.txt");
+            //string myTempFile = Path.Combine(Path.GetTempPath(), "Luminance.txt");
             int count = new Regex(Regex.Escape("\n")).Matches(result.ToString()).Count;
             System.Diagnostics.Debug.WriteLine(count);
-            File.WriteAllText(myTempFile, result.ToString());
+            //System.Diagnostics.Debug.WriteLine(myTempFile);
+            //File.WriteAllText(myTempFile, result.ToString());
             // Q-Soft End
 
             return result.ToString();

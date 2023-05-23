@@ -18,6 +18,24 @@ using System;
 
 namespace ZXing
 {
+
+    // Q-Soft Global Errors
+    public static class gData
+    {
+        public static int erasures { get; set; } = 0;
+        public static int ambiguousIndexValues { get; set; } = 0;
+        public static string detectionResult { get; set; } = "";
+        
+
+        public static void Clear()
+        {
+            erasures = 0;
+            ambiguousIndexValues = 0;
+            detectionResult = "";
+        }
+        
+    }
+
     /// <summary>
     /// A smart class to decode the barcode inside a bitmap object
     /// </summary>
@@ -32,6 +50,7 @@ namespace ZXing
            : this(null, createLuminanceSource, null)
         {
         }
+
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BarcodeReader{T}"/> class.
@@ -108,6 +127,8 @@ namespace ZXing
         /// <returns>the result data or null</returns>
         public Result Decode(T barcodeBitmap)
         {
+            gData.Clear(); // Q-Soft
+
             if (CreateLuminanceSource == null)
             {
                 throw new InvalidOperationException("You have to declare a luminance source delegate.");
@@ -120,6 +141,8 @@ namespace ZXing
 
             return Decode(luminanceSource);
         }
+
+
 
         /// <summary>
         /// Decodes the specified barcode bitmap.

@@ -264,7 +264,7 @@ namespace ZXing.PDF417.Internal
                         }
 
                         float f = (float)w / (float)b;
-                        Console.WriteLine("white to Black: " + f);
+                        //Console.WriteLine("white to Black: " + f);
                         matrix.ThickBlack = (f < BLACK_THRESHOLD);
                     }
                     // Q-Soft End
