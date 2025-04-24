@@ -18,20 +18,34 @@ using System;
 
 namespace ZXing
 {
-
-    // Q-Soft Global Errors
-    public static class gData
+    /// <summary>
+    /// Q-Soft Global Errors
+    /// </summary>
+    public static class GData
     {
-        public static int erasures { get; set; } = 0;
-        public static int ambiguousIndexValues { get; set; } = 0;
-        public static string detectionResult { get; set; } = "";
-        
+        /// <summary>
+        /// Q-Soft Erasures
+        /// </summary>
+        public static int Erasures { get; set; } = 0;
 
+        /// <summary>
+        /// Q-Soft Ambiguos Index Values
+        /// </summary>
+        public static int AmbiguousIndexValues { get; set; } = 0;
+
+        /// <summary>
+        /// Q-Soft Detection Result
+        /// </summary>
+        public static string DetectionResult { get; set; } = "";
+
+        /// <summary>
+        /// Q-Soft Clear
+        /// </summary>
         public static void Clear()
         {
-            erasures = 0;
-            ambiguousIndexValues = 0;
-            detectionResult = "";
+            Erasures = 0;
+            AmbiguousIndexValues = 0;
+            DetectionResult = "";
         }
         
     }
@@ -127,7 +141,7 @@ namespace ZXing
         /// <returns>the result data or null</returns>
         public Result Decode(T barcodeBitmap)
         {
-            gData.Clear(); // Q-Soft
+            GData.Clear(); // Q-Soft
 
             if (CreateLuminanceSource == null)
             {

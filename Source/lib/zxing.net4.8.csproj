@@ -73,6 +73,46 @@
     <LangVersion>7.3</LangVersion>
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'NuevaSanMiguel|AnyCPU'">
+    <OutputPath>bin\NuevaSanMiguel\</OutputPath>
+    <DefineConstants>TRACE;NET48</DefineConstants>
+    <DocumentationFile>..\..\Build\Release\net4.8\zxing.XML</DocumentationFile>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'VillaPanam|AnyCPU'">
+    <OutputPath>bin\VillaPanam\</OutputPath>
+    <DefineConstants>TRACE;NET48</DefineConstants>
+    <DocumentationFile>..\..\Build\Release\net4.8\zxing.XML</DocumentationFile>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Altamira|AnyCPU'">
+    <OutputPath>bin\Altamira\</OutputPath>
+    <DefineConstants>TRACE;NET48</DefineConstants>
+    <DocumentationFile>..\..\Build\Release\net4.8\zxing.XML</DocumentationFile>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'EcoTerra|AnyCPU'">
+    <OutputPath>bin\EcoTerra\</OutputPath>
+    <DefineConstants>TRACE;NET48</DefineConstants>
+    <DocumentationFile>..\..\Build\Release\net4.8\zxing.XML</DocumentationFile>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />

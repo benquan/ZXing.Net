@@ -151,7 +151,7 @@ namespace ZXing.PDF417.Internal
 
             System.Diagnostics.Debug.WriteLine("Decoding Box");
 
-            gData.detectionResult = detectionResult.ToString();
+            GData.DetectionResult = detectionResult.ToString();
 
             return createDecoderResult(detectionResult, startWithEncoding);
         }
@@ -390,8 +390,8 @@ namespace ZXing.PDF417.Internal
                 ambiguousIndexValues[i] = ambiguousIndexValuesList[i];
             }
 
-            gData.erasures = erasures.Count;
-            gData.ambiguousIndexValues = ambiguousIndexValues.Length;
+            GData.Erasures = erasures.Count;
+            GData.AmbiguousIndexValues = ambiguousIndexValues.Length;
 
             System.Diagnostics.Debug.WriteLine($"Erasures: {erasures.Count}" );
             System.Diagnostics.Debug.WriteLine($"Ambiguous: {ambiguousIndexValues.Length}" );
