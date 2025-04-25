@@ -403,7 +403,7 @@ namespace ZXing.Common
             int offset = y * rowSize;
             for (int x = 0; x < rowSize; x++)
             {
-                row.setBulk(x << 5, bits[offset + x]);
+                row.setBulk(x, bits[offset + x]);
             }
             return row;
         }
